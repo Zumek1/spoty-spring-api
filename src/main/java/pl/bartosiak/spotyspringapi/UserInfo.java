@@ -15,6 +15,7 @@ public class UserInfo {
 
     @GetMapping("/hello")
     public Principal hello(Principal principal){
+        System.out.println("testy");
         return principal;
     }
 }
