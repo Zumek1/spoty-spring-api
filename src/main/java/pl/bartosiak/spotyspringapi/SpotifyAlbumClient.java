@@ -11,13 +11,17 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import pl.bartosiak.spotyspringapi.model.SpotifyAlbum;
+import pl.bartosiak.spotyspringapi.model.SpotifyAlbumDto;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 public class SpotifyAlbumClient {
 
 
     @GetMapping("/album/{authorName}")
-    public SpotifyAlbum getAlbumsByAuthor(OAuth2Authentication details, @PathVariable String authorName) {
+    public List<SpotifyAlbumDto> getAlbumsByAuthor(OAuth2Authentication details, @PathVariable String authorName) {
         String jwt = ((OAuth2AuthenticationDetails) details.getDetails()).getTokenValue();//pobieranie token
 
         RestTemplate restTemplate = new RestTemplate();
@@ -29,6 +33,19 @@ public class SpotifyAlbumClient {
                 HttpMethod.GET,
                 httpEntity,
                 SpotifyAlbum.class);
-        return exchange.getBody();
+
+        List<SpotifyAlbumDto> spotifyAlbumDtos =
+                exchange.getBody()
+                .getTracks().getItems().stream()
+                .map(item -> new SpotifyAlbumDto(item.getName(),item.getAlbum().getImages().get(0).getUrl()))
+                .collect(Collectors.toList());
+
+        for(int i =0;i<spotifyAlbumDtos.size();i++){
+            System.out.println(spotifyAlbumDtos.get(i).getTrackName());
+            System.out.println(spotifyAlbumDtos.get(i).getImageUrl());
+        }
+
+
+        return spotifyAlbumDtos;
     }
 }
